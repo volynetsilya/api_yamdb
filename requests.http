@@ -1,0 +1,169 @@
+####
+GET http://127.0.0.1:8000/api/v1/genres/
+
+####
+GET http://127.0.0.1:8000/api/v1/categories/
+
+####
+POST http://127.0.0.1:8000/api/v1/categories/
+Content-Type: application/json
+
+{
+    "title": "My Title",
+    "body": "My text",
+    "userId": 1
+}
+
+####
+GET http://127.0.0.1:8000/api/v1/titles/6
+
+####
+GET http://127.0.0.1:8000/api/v1/titles/
+
+####
+POST http://127.0.0.1:8000/api/v1/titles/
+Content-Type: application/json
+
+{
+    "name": "Ёлочка-палочка",
+    "year": "2020",
+    "category": "movie",
+    "genres": ["drama"]
+}
+
+####
+PATCH http://127.0.0.1:8000/api/v1/titles/6
+Content-Type: application/json
+
+{
+    "name": "Ёлочка-палочка",
+    "year": "2021",
+}
+
+
+####
+DELETE http://127.0.0.1:8000/api/v1/titles/4/
+
+
+
+
+
+####
+POST http://127.0.0.1:8000/api/v1/jwt/create/
+Content-Type: application/json
+
+{
+    "username": "admin",
+    "password": "admin12345"
+}
+
+####
+GET http://127.0.0.1:8000/api/v1/posts/21/
+
+
+####
+DELETE http://127.0.0.1:8000/api/v1/posts/5/
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjU4ODI3ODMwLCJqdGkiOiIxOTAwYzgxMjIzYjE0MzJkYWQ0MDE4MGQ2ZmI4NWU0YyIsInVzZXJfaWQiOjF9.1vRcFgie7Am0JPymXBBSZXNwGwMQ3iCJl7xz5Bc5Kzs
+Content-Type: application/json
+
+
+####
+PATCH http://127.0.0.1:8000/api/v1/posts/1/
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjU4ODI3ODMwLCJqdGkiOiIxOTAwYzgxMjIzYjE0MzJkYWQ0MDE4MGQ2ZmI4NWU0YyIsInVzZXJfaWQiOjF9.1vRcFgie7Am0JPymXBBSZXNwGwMQ3iCJl7xz5Bc5Kzs
+Content-Type: application/json
+
+{
+    "group": "1"
+}
+
+####
+GET http://127.0.0.1:8000/api/v1/groups/
+Content-Type: application/json
+
+####
+POST http://127.0.0.1:8000/api/v1/groups/
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjU4ODI3ODMwLCJqdGkiOiIxOTAwYzgxMjIzYjE0MzJkYWQ0MDE4MGQ2ZmI4NWU0YyIsInVzZXJfaWQiOjF9.1vRcFgie7Am0JPymXBBSZXNwGwMQ3iCJl7xz5Bc5Kzs
+Content-Type: application/json
+
+
+####
+POST http://127.0.0.1:8000/api/v1/posts/7/comments/
+Authorization: Token c317fd1ff35165e6560b6dc48729503c65a4fd48
+Content-Type: application/json
+
+{
+    "text": "Привет от User1."
+}
+
+
+####
+GET http://127.0.0.1:8000/api/v1/posts/1/comments/
+Authorization: Token 752a302a6ec7c80efba3c66d293a3796ffe607fa
+Content-Type: application/json
+
+####
+PATCH http://127.0.0.1:8000/api/v1/posts/3/comments/4/
+Authorization: Token 6e9b52d4c4c3aea04989266f8a938cc30f9f9779
+Content-Type: application/json
+
+{
+    "text": "Привет от Юзера 2."
+}
+
+####
+DELETE http://127.0.0.1:8000/api/v1/posts/6/comments/4/
+Authorization: Token c317fd1ff35165e6560b6dc48729503c65a4fd48
+Content-Type: application/json
+
+####
+GET http://127.0.0.1:8000/api/v1/follow/
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjU4ODI3NzkwLCJqdGkiOiIxNTQwOGY5NGRlNjM0YTI3YmIzNTRjMjBiNTcwMDdlYSIsInVzZXJfaWQiOjJ9.dr9lNRa-xtv-SF46Ec5BkjqUWm0MCCZVsx5V4rWLx3E
+Content-Type: application/json
+
+####
+POST http://127.0.0.1:8000/api/v1/follow/
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjU4ODI3NzkwLCJqdGkiOiIxNTQwOGY5NGRlNjM0YTI3YmIzNTRjMjBiNTcwMDdlYSIsInVzZXJfaWQiOjJ9.dr9lNRa-xtv-SF46Ec5BkjqUWm0MCCZVsx5V4rWLx3E
+Content-Type: application/json
+
+{
+    "following": "admin"
+}
+
+####
+DELETE http://127.0.0.1:8000/api/v1/follow/2/
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjU4ODI3NzkwLCJqdGkiOiIxNTQwOGY5NGRlNjM0YTI3YmIzNTRjMjBiNTcwMDdlYSIsInVzZXJfaWQiOjJ9.dr9lNRa-xtv-SF46Ec5BkjqUWm0MCCZVsx5V4rWLx3E
+Content-Type: application/json
+
+{
+    "following": "user1"
+}
+
+####
+PATCH http://127.0.0.1:8000/api/v1/follow/1/
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjU4ODI3NzkwLCJqdGkiOiIxNTQwOGY5NGRlNjM0YTI3YmIzNTRjMjBiNTcwMDdlYSIsInVzZXJfaWQiOjJ9.dr9lNRa-xtv-SF46Ec5BkjqUWm0MCCZVsx5V4rWLx3E
+Content-Type: application/json
+
+{
+    "following": "user1"
+}
+
+####
+GET http://127.0.0.1:8000/api/v1/posts/1/comments/
+
+####
+POST http://127.0.0.1:8000/api/v1/posts/1/comments/
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjU4ODI3NzkwLCJqdGkiOiIxNTQwOGY5NGRlNjM0YTI3YmIzNTRjMjBiNTcwMDdlYSIsInVzZXJfaWQiOjJ9.dr9lNRa-xtv-SF46Ec5BkjqUWm0MCCZVsx5V4rWLx3E
+Content-Type: application/json
+
+{
+    "text": "Привет от User2."
+}
+
+####
+DELETE http://127.0.0.1:8000/api/v1/posts/1/comments/3/
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjU4ODI3NzkwLCJqdGkiOiIxNTQwOGY5NGRlNjM0YTI3YmIzNTRjMjBiNTcwMDdlYSIsInVzZXJfaWQiOjJ9.dr9lNRa-xtv-SF46Ec5BkjqUWm0MCCZVsx5V4rWLx3E
+Content-Type: application/json
+
+{
+    "text": "Привет от User3."
+}
