@@ -2,6 +2,15 @@
 GET http://127.0.0.1:8000/api/v1/genres/
 
 ####
+POST http://127.0.0.1:8000/api/v1/genres/
+Content-Type: application/json
+
+{
+    "name": "Пост-модерн",
+    "slug": "post-modern1"
+}
+
+####
 GET http://127.0.0.1:8000/api/v1/categories/
 
 ####
@@ -9,9 +18,8 @@ POST http://127.0.0.1:8000/api/v1/categories/
 Content-Type: application/json
 
 {
-    "title": "My Title",
-    "body": "My text",
-    "userId": 1
+    "name": "Изобразительное искусство",
+    "slug": "art"
 }
 
 ####
@@ -25,24 +33,23 @@ POST http://127.0.0.1:8000/api/v1/titles/
 Content-Type: application/json
 
 {
-    "name": "Ёлочка-палочка",
-    "year": "2020",
+    "name": "Гостья из будущего 3",
+    "year": "2010",
     "category": "movie",
-    "genres": ["drama"]
+    "genres": ["sci-fi", "detective"]
 }
 
 ####
-PATCH http://127.0.0.1:8000/api/v1/titles/6
+PATCH http://127.0.0.1:8000/api/v1/titles/12/
 Content-Type: application/json
 
 {
-    "name": "Ёлочка-палочка",
-    "year": "2021",
+    "name": "Пришельцы из будущего. 2",
+    "year": "2007"
 }
 
-
 ####
-DELETE http://127.0.0.1:8000/api/v1/titles/4/
+DELETE http://127.0.0.1:8000/api/v1/titles/34/
 
 
 
@@ -58,7 +65,7 @@ Content-Type: application/json
 }
 
 ####
-GET http://127.0.0.1:8000/api/v1/posts/21/
+GET http://127.0.0.1:8000/api/v1/posts/22/
 
 
 ####
