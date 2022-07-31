@@ -4,7 +4,6 @@ from users.models import User
 
 class Title(models.Model):
     name = models.CharField(
-        verbose_name='Название',
         max_length=200
     )
 
