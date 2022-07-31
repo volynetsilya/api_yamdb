@@ -6,13 +6,13 @@ class User(AbstractUser):
     password = None
     email = models.CharField(max_length=254)
     bio = models.TextField('Биография', blank=True,)
-    USER = 1
-    MODERATOR = 2
-    ADMIN = 3
+    USER = 'user'
+    ADMIN = 'admin'
+    MODERATOR = 'moderator'
     ROLE_CHOICES = (
-        (USER, 'user'),
-        (MODERATOR, 'moderator'),
-        (ADMIN, 'admin'),
+        (USER, 'Аутентифицированный пользователь'),
+        (ADMIN, 'Адмитнистратор'),
+        (MODERATOR, 'Модератор'),
     )
     role = models.TextField(
         'Роль',
@@ -22,3 +22,16 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.username
+
+
+    @property
+    def is_user(self):
+        return self.role == User.USER
+
+    @property
+    def is_admin(self):
+        return self.role == User.ADMIN
+
+    @property
+    def is_moderator(self):
+        return self.role == User.MODERATOR
