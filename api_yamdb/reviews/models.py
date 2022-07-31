@@ -15,8 +15,11 @@ class Category(models.Model):
     """
     Model representing a Title category (e.g. "Books", "Movies", "Music" ...).
     """
-    name = models.CharField(max_length=256)
+    name = models.CharField(max_length=256, unique=True)
     slug = models.SlugField(max_length=50, unique=True)
+
+    class Meta:
+        ordering = ('name',)
 
     def __str__(self):
         return self.name

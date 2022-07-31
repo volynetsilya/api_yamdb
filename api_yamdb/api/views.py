@@ -1,7 +1,6 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import get_object_or_404
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
-from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, filters, status
 from rest_framework.decorators import api_view, action, permission_classes
 from rest_framework.pagination import PageNumberPagination
@@ -22,7 +21,10 @@ from api.serializers import (
 )
 from api.serializers import UserSerializer, SignUpSerializer, TokenSerializer
 from api.serializers import CommentSerializer, ReviewSerializer
-from api.permissions import AdminOnly, AccountOwnerOnly, IsAdminModeratorOwnerOrReadOnly
+from api.permissions import (
+    AdminOnly, AccountOwnerOnly,
+    IsAdminModeratorOwnerOrReadOnly, AdminOrReadOnly
+)
 from api_yamdb.settings import EMAIL_FOR_AUTH_LETTERS
 
 
@@ -92,11 +94,10 @@ def token(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Titles.objects.all()
     serializer_class = TitlesSerializer(partial=False)
-    filter_backends = (DjangoFilterBackend,)
+    filter_backends = (filters.SearchFilter,)
     filterset_fields = ('name', 'category__slug', 'genres__slug', 'year')
     permission_classes = (AdminOrReadOnly,)
 
@@ -112,9 +113,12 @@ class TitleViewSet(viewsets.ModelViewSet):
 
 class CategoriesViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
+    pagination_class = PageNumberPagination
+    lookup_field = 'slug'
     serializer_class = CategorySerializer
     filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)
+    search_fields = ('name', 'slug')
+    filterset_fields = ('name', 'slug')
     permission_classes = (AdminOrReadOnly,)
 
 

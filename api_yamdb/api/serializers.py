@@ -1,6 +1,5 @@
 from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import get_object_or_404
-from django.db.models import Avg
 from rest_framework.exceptions import ValidationError
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
@@ -61,6 +60,7 @@ class GengeTpe(serializers.Field):
     def to_representation(self, value):
         print(value)
         return value
+
     def to_internal_value(self, data):
         genres_list = Genre.objects.filter(slug__in=data)
         if genres_list.count() != len(data):
@@ -102,9 +102,9 @@ class GenreTitleSerializer(serializers.ModelSerializer):
 class TitlesSerializer(serializers.ModelSerializer):
     genres = GenreSerializer(many=True, required=True)
     category = CategorySerializer(required=True)
-    #rating = serializers.IntegerField(
+    # rating = serializers.IntegerField(
     #    Titles.objects.annotate(rating=Avg('reviews__score'))
-    #)
+    # )
 
     class Meta:
         fields = ('__all__')
@@ -117,9 +117,9 @@ class TitlePostlesSerializer(serializers.ModelSerializer):
         slug_field='slug'
     )
     genres = GenreTitleSerializer(many=True)
-    #rating = serializers.IntegerField(
+    # rating = serializers.IntegerField(
     #    Titles.objects.annotate(rating=Avg('reviews__score'))
-    #)
+    # )
 
     def create(self, validated_data):
         genres_to_write = validated_data.pop('genres')
@@ -133,9 +133,9 @@ class TitlePostlesSerializer(serializers.ModelSerializer):
         fields = '__all__'
         model = Titles
         extra_kwargs = {
-            'description': {'required': False}, 
+            'description': {'required': False},
             'category': {'required': True},
-            #'rating': {'required': False},
+            # 'rating': {'required': False},
         }
 
 
@@ -174,4 +174,3 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         fields = '__all__'
-
