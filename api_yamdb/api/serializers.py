@@ -1,11 +1,12 @@
 from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import get_object_or_404
+from django.db.models import Avg
 from rest_framework.exceptions import ValidationError
 from rest_framework import serializers
-from django.db.models import Avg
-from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
+from rest_framework.validators import UniqueTogetherValidator
 
+from reviews.models import Comment, Review
 from reviews.models import Category, Genre, GenreTitles, Titles
 from api.validators import validate_username, validate_email
 from users.models import User
@@ -136,3 +137,41 @@ class TitlePostlesSerializer(serializers.ModelSerializer):
             'category': {'required': True},
             #'rating': {'required': False},
         }
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+    title_id = SlugRelatedField(
+        slug_field='name',
+        read_only=True,
+    )
+    author = SlugRelatedField(
+        default=serializers.CurrentUserDefault(),
+        slug_field='username',
+        read_only=True
+    )
+
+    class Meta:
+        model = Review
+        fields = '__all__'
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Review.objects.all(),
+                fields=['author', 'title_id']
+            )
+        ]
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    review_id = SlugRelatedField(
+        slug_field='text',
+        read_only=True
+    )
+    author = SlugRelatedField(
+        slug_field='username',
+        read_only=True
+    )
+
+    class Meta:
+        model = Comment
+        fields = '__all__'
+
