@@ -17,10 +17,12 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        exclude = ('id')
+        fields = (
+            'username', 'email', 'first_name', 'last_name', 'bio', 'role'
+        )
 
 
-class SingUpSerializer(serializers.ModelSerializer):
+class SignUpSerializer(serializers.Serializer):
     username = serializers.CharField(
         max_length=150, validators=[validate_username]
     )
@@ -28,24 +30,23 @@ class SingUpSerializer(serializers.ModelSerializer):
         max_length=254, validators=[validate_email]
     )
 
-    class Meta:
-        model = User
-        fields = ('username', 'email')
+    def create(self, validated_data):
+        return User.objects.create(**validated_data)
 
 
 class TokenSerializer(serializers.ModelSerializer):
     username = serializers.CharField(
         max_length=150, validators=[validate_username]
     )
-    token = serializers.CharField(max_length=50)
+    confirmation_code = serializers.CharField(allow_blank=False)
 
     class Meta:
         model = User
-        firlds = ('username', 'code')
+        fields = ('username', 'confirmation_code')
 
     def validate(self, data):
         user = get_object_or_404(User, username=data['username'])
-        token = default_token_generator.make_token(user)
-        if str(token) != data['code']:
+        confirmation_code = default_token_generator.make_token(user)
+        if str(confirmation_code) != data['confirmation_code']:
             raise ValidationError('Неверный код подтверждения!')
         return data
