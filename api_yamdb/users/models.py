@@ -3,8 +3,6 @@ from django.db import models
 
 
 class User(AbstractUser):
-    password = None
-    email = models.CharField(max_length=254)
     bio = models.TextField('Биография', blank=True,)
     USER = 'user'
     ADMIN = 'admin'
@@ -23,6 +21,8 @@ class User(AbstractUser):
     def __str__(self):
         return self.username
 
+    class Meta:
+        ordering = ('role',)
 
     @property
     def is_user(self):
