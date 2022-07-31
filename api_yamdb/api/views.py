@@ -1,7 +1,6 @@
 from django.shortcuts import render
-from rest_framework import viewsets
-from rest_framework.pagination import (LimitOffsetPagination,
-                                       PageNumberPagination)
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, viewsets
 
 from reviews.models import Category, Genre, Titles
 
@@ -18,6 +17,8 @@ from api.serializers import (
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Titles.objects.all()
     serializer_class = TitlesSerializer(partial=False)
+    filter_backends = (DjangoFilterBackend,)
+    filterset_fields = ('name', 'category__slug', 'genres__slug', 'year')
     #permission_classes = (AdminOrReadOnly,)
 
     def get_serializer_class(self):
@@ -33,10 +34,14 @@ class TitleViewSet(viewsets.ModelViewSet):
 class CategoriesViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
     #permission_classes = (AdminOrReadOnly,)
 
 
 class GenresViewSet(viewsets.ModelViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
     #permission_classes = (AdminOrReadOnly,)

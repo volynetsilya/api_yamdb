@@ -50,6 +50,9 @@ class GenreTitleSerializer(serializers.ModelSerializer):
 class TitlesSerializer(serializers.ModelSerializer):
     genres = GenreSerializer(many=True, required=True)
     category = CategorySerializer(required=True)
+    #rating = serializers.IntegerField(
+    #    Titles.objects.annotate(rating=Avg('reviews__score'))
+    #)
 
     class Meta:
         fields = ('__all__')
@@ -62,6 +65,9 @@ class TitlePostlesSerializer(serializers.ModelSerializer):
         slug_field='slug'
     )
     genres = GenreTitleSerializer(many=True)
+    #rating = serializers.IntegerField(
+    #    Titles.objects.annotate(rating=Avg('reviews__score'))
+    #)
 
     def create(self, validated_data):
         genres_to_write = validated_data.pop('genres')
@@ -74,4 +80,8 @@ class TitlePostlesSerializer(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'
         model = Titles
-        extra_kwargs = {'description': {'required': False}, 'category': {'required': True}}
+        extra_kwargs = {
+            'description': {'required': False}, 
+            'category': {'required': True},
+            #'rating': {'required': False},
+        }

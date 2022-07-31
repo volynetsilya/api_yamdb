@@ -1,5 +1,6 @@
 ####
 GET http://127.0.0.1:8000/api/v1/genres/
+Content-Type: application/json
 
 ####
 POST http://127.0.0.1:8000/api/v1/genres/
@@ -11,7 +12,7 @@ Content-Type: application/json
 }
 
 ####
-GET http://127.0.0.1:8000/api/v1/categories/
+GET http://127.0.0.1:8000/api/v1/categories/?search=sfghds
 
 ####
 POST http://127.0.0.1:8000/api/v1/categories/
@@ -23,10 +24,13 @@ Content-Type: application/json
 }
 
 ####
-GET http://127.0.0.1:8000/api/v1/titles/6
+DELETE http://127.0.0.1:8000/api/v1/categories/4/
 
 ####
-GET http://127.0.0.1:8000/api/v1/titles/
+GET http://127.0.0.1:8000/api/v1/titles/?category__slug=movie
+
+####
+GET http://127.0.0.1:8000/api/v1/titles/2/
 
 ####
 POST http://127.0.0.1:8000/api/v1/titles/
