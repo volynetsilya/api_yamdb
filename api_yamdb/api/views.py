@@ -1,4 +1,5 @@
 from django.shortcuts import get_object_or_404
+from django.db.models import Avg
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from rest_framework import viewsets, filters, status
@@ -11,12 +12,12 @@ from rest_framework import filters, viewsets
 from rest_framework import viewsets
 
 from users.models import User
-from reviews.models import Review, Title
-from reviews.models import Category, Genre, Titles
+from reviews.models import Review, Title, Comment
+from reviews.models import Category, Genre, Title
 from api.serializers import (
     CategorySerializer,
     GenreSerializer,
-    TitlesSerializer,
+    TitleSerializer,
     TitlePostlesSerializer
 )
 from api.serializers import UserSerializer, SignUpSerializer, TokenSerializer
@@ -95,25 +96,32 @@ def token(request):
 
 
 class TitleViewSet(viewsets.ModelViewSet):
-    queryset = Titles.objects.all()
-    serializer_class = TitlesSerializer(partial=False)
+    queryset = Title.objects.all()
+    serializer_class = TitleSerializer(partial=False)
     filter_backends = (filters.SearchFilter,)
     filterset_fields = ('name', 'category__slug', 'genres__slug', 'year')
     permission_classes = (AdminOrReadOnly,)
 
     def get_serializer_class(self):
         if self.action in ('list', 'retrieve'):
-            return TitlesSerializer
+            return TitleSerializer
         return TitlePostlesSerializer
 
     def perform_create(self, serializer):
         if serializer.is_valid():
             serializer.save()
 
+    def get_queryset(self):
+        if self.action in ('list', 'retrieve'):
+            queryset = (Title.objects.prefetch_related('reviews').all().
+                        annotate(rating=Avg('reviews__score')).
+                        order_by('name'))
+            return queryset
+        return Title.objects.all()
+
 
 class CategoriesViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
-    pagination_class = PageNumberPagination
     lookup_field = 'slug'
     serializer_class = CategorySerializer
     filter_backends = (filters.SearchFilter,)
@@ -140,7 +148,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         title_id = self.kwargs.get('title_id')
-        title = get_object_or_404(Title, id=title_id)
+        title = get_object_or_404(Title, pk=title_id)
         serializer.save(author=self.request.user, title=title)
 
 
@@ -155,5 +163,15 @@ class CommentViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         title_id = self.kwargs.get('title_id')
         review_id = self.kwargs.get('review_id')
-        review = get_object_or_404(Review, id=review_id, title=title_id)
+        review = get_object_or_404(Review, pk=review_id, title=title_id)
         serializer.save(author=self.request.user, review=review)
+
+    def perform_update(self, serializer):
+        review = get_object_or_404(Review, pk=self.kwargs.get('review_id'))
+        # сохранить имя автора, если правит не он
+        comment_id = self.kwargs.get('pk')
+        author = Comment.objects.get(pk=comment_id).author
+        serializer.save(
+            author=author,
+            review_id=review.id
+        )

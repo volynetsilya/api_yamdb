@@ -128,4 +128,3 @@ SIMPLE_JWT = {
 }
 
 EMAIL_FOR_AUTH_LETTERS = 'support@yamdb.ru'
-
