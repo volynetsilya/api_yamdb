@@ -1,8 +1,13 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
-from reviews.models import Review, Title
+from reviews.models import Title, Review, Comment
 from .permissions import IsAdminModeratorOwnerOrReadOnly
-from .serializers import CommentSerializer, ReviewSerializer
+from .serializers import TitleSerializer, CommentSerializer, ReviewSerializer
+
+
+class TitleViewSet(viewsets.ModelViewSet):
+    queryset = Title.objects.all().order_by("name")
+    serializer_class = TitleSerializer
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
