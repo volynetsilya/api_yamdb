@@ -7,9 +7,10 @@ from rest_framework.decorators import api_view, action, permission_classes
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework import filters, viewsets
+from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
+from rest_framework import filters, viewsets, mixins
 from rest_framework import viewsets
+# from django_filters.rest_framework import
 
 from users.models import User
 from reviews.models import Review, Title, Comment
@@ -18,7 +19,7 @@ from api.serializers import (
     CategorySerializer,
     GenreSerializer,
     TitleSerializer,
-    TitlePostlesSerializer
+    TitlePostSerializer
 )
 from api.serializers import UserSerializer, SignUpSerializer, TokenSerializer
 from api.serializers import CommentSerializer, ReviewSerializer
@@ -29,12 +30,21 @@ from api.permissions import (
 from api_yamdb.settings import EMAIL_FOR_AUTH_LETTERS
 
 
+class LCDV(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet
+):
+    pass
+
+
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     lookup_field = 'username'
     serializer_class = UserSerializer
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('username',)
+    # filter_backends = (filters.SearchFilter,)
+    # search_fields = ('username',)
     pagination_class = PageNumberPagination
     permission_classes = (AdminOnly,)
 
@@ -66,6 +76,7 @@ def signup(request):
     user = User.objects.get(username=request.data['username'],
                             email=request.data['email'])
     confirmation_code = default_token_generator.make_token(user)
+    print(confirmation_code)
     send_mail(
         'Код подтверждения', confirmation_code, EMAIL_FOR_AUTH_LETTERS,
         [request.data['email']], fail_silently=True
@@ -86,51 +97,53 @@ def get_tokens_for_user(user):
 def token(request):
     serializer = TokenSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    user = get_object_or_404(User, username=request.data['username'])
-    confirmation_code = request.data['confirmation_code']
+    user = get_object_or_404(
+        User,
+        username=serializer.validated_data['username']
+    )
+    confirmation_code = serializer.validated_data['confirmation_code']
     if default_token_generator.check_token(user, confirmation_code):
-        token = get_tokens_for_user(user)
-        response = {'token': str(token['access'])}
-        return Response(response, status=status.HTTP_200_OK)
+        token = AccessToken.for_user(user)
+        # response = {'token': str(token['access'])}
+        return Response({'token': str(token)}, status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class TitleViewSet(viewsets.ModelViewSet):
-    queryset = Title.objects.all()
-    serializer_class = TitleSerializer(partial=False)
+    queryset = Title.objects.all().annotate(Avg('reviews__score')).order_by('name')
+    serializer_class = TitlePostSerializer  # (partial=False)
     filter_backends = (filters.SearchFilter,)
-    filterset_fields = ('name', 'category__slug', 'genres__slug', 'year')
+    # filterset_fields = ('name', 'category__slug', 'genres__slug', 'year')
     permission_classes = (AdminOrReadOnly,)
 
     def get_serializer_class(self):
         if self.action in ('list', 'retrieve'):
             return TitleSerializer
-        return TitlePostlesSerializer
+        return TitlePostSerializer
 
-    def perform_create(self, serializer):
-        if serializer.is_valid():
-            serializer.save()
+    # def perform_create(self, serializer):
+    #     if serializer.is_valid():
+    #         serializer.save()
 
-    def get_queryset(self):
-        if self.action in ('list', 'retrieve'):
-            queryset = (Title.objects.prefetch_related('reviews').all().
-                        annotate(rating=Avg('reviews__score')).
-                        order_by('name'))
-            return queryset
-        return Title.objects.all()
+    # def get_queryset(self):
+    #     if self.action in ('list', 'retrieve'):
+    #         queryset = (Title.objects.all().annotate(
+    #             Avg('reviews__score')).order_by('name'))
+    #         return queryset
+    #     return Title.objects.all()
 
 
-class CategoriesViewSet(viewsets.ModelViewSet):
+class CategoriesViewSet(LCDV):
     queryset = Category.objects.all()
-    lookup_field = 'slug'
     serializer_class = CategorySerializer
-    filter_backends = (filters.SearchFilter,)
+    permission_classes = (AdminOrReadOnly,)
     search_fields = ('name', 'slug')
     filterset_fields = ('name', 'slug')
-    permission_classes = (AdminOrReadOnly,)
+    lookup_field = 'slug'
+    filter_backends = (filters.SearchFilter,)
 
 
-class GenresViewSet(viewsets.ModelViewSet):
+class GenresViewSet(LCDV):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     filter_backends = (filters.SearchFilter,)

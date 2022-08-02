@@ -50,6 +50,10 @@ class Title(models.Model):
         null=True,
         on_delete=models.SET_NULL
     )
+    rating = models.IntegerField(
+        null=True,
+        default=None
+    )
 
     class Meta:
         ordering = ('category', 'name')
@@ -99,7 +103,7 @@ class Review(models.Model):
     )
     pub_date = models.DateTimeField(
         auto_now_add=True,
-        # db_index=True
+        db_index=True
     )
 
     class Meta:
@@ -125,7 +129,7 @@ class Comment(models.Model):
     pub_date = models.DateTimeField(
         verbose_name='Дата публикации',
         auto_now_add=True,
-        # db_index=True
+        db_index=True
     )
 
     class Meta:

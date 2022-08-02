@@ -6,7 +6,7 @@ from users.models import User
 def validate_username(value):
     if User.objects.filter(username=value).exists():
         raise ValidationError(
-            'Пользователь с таким именем уже существует!'
+            'Пользователь с таким именем 1 уже существует!'
         )
     elif value == 'me':
         raise ValidationError(
