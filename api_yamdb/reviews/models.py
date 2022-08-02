@@ -74,7 +74,7 @@ class Title(models.Model):
         #         name='unique_name_year'
         #     ),
         # ]
-    
+
     def __str__(self):
         return self.name
 

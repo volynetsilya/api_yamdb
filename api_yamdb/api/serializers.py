@@ -145,6 +145,7 @@ class ReviewSerializer(serializers.ModelSerializer):
         slug_field='username',
         read_only=True
     )
+
     def validate(self, data):
         request = self.context['request']
         author = request.user
