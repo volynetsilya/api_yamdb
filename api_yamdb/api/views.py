@@ -10,10 +10,9 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
 from rest_framework import filters, viewsets, mixins
 from rest_framework import viewsets
-# from django_filters.rest_framework import
 
 from users.models import User
-from reviews.models import Review, Title, Comment
+from reviews.models import Review, Title
 from reviews.models import Category, Genre, Title
 from api.serializers import (
     CategorySerializer,
@@ -43,8 +42,6 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     lookup_field = 'username'
     serializer_class = UserSerializer
-    # filter_backends = (filters.SearchFilter,)
-    # search_fields = ('username',)
     pagination_class = PageNumberPagination
     permission_classes = (AdminOnly,)
 
@@ -104,33 +101,21 @@ def token(request):
     confirmation_code = serializer.validated_data['confirmation_code']
     if default_token_generator.check_token(user, confirmation_code):
         token = AccessToken.for_user(user)
-        # response = {'token': str(token['access'])}
         return Response({'token': str(token)}, status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class TitleViewSet(viewsets.ModelViewSet):
-    queryset = Title.objects.all().annotate(Avg('reviews__score')).order_by('name')
-    serializer_class = TitlePostSerializer  # (partial=False)
+    queryset = Title.objects.all().annotate(Avg(
+        'reviews__score')).order_by('name')
+    serializer_class = TitlePostSerializer
     filter_backends = (filters.SearchFilter,)
-    # filterset_fields = ('name', 'category__slug', 'genres__slug', 'year')
     permission_classes = (AdminOrReadOnly,)
 
     def get_serializer_class(self):
         if self.action in ('list', 'retrieve'):
             return TitleSerializer
         return TitlePostSerializer
-
-    # def perform_create(self, serializer):
-    #     if serializer.is_valid():
-    #         serializer.save()
-
-    # def get_queryset(self):
-    #     if self.action in ('list', 'retrieve'):
-    #         queryset = (Title.objects.all().annotate(
-    #             Avg('reviews__score')).order_by('name'))
-    #         return queryset
-    #     return Title.objects.all()
 
 
 class CategoriesViewSet(LCDV):
@@ -147,8 +132,9 @@ class GenresViewSet(LCDV):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)
+    search_fields = ('name', 'slug')
     permission_classes = (AdminOrReadOnly,)
+    lookup_field = 'slug'
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -156,7 +142,8 @@ class ReviewViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdminModeratorOwnerOrReadOnly]
 
     def get_queryset(self):
-        title = get_object_or_404(Title, pk=self.kwargs.get("title_id"))
+        title_id = self.kwargs.get('title_id')
+        title = get_object_or_404(Title, pk=title_id)
         return title.reviews.all()
 
     def perform_create(self, serializer):
@@ -170,7 +157,7 @@ class CommentViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdminModeratorOwnerOrReadOnly]
 
     def get_queryset(self):
-        review = get_object_or_404(Review, pk=self.kwargs.get("review_id"))
+        review = get_object_or_404(Review, pk=self.kwargs.get('review_id'))
         return review.comments.all()
 
     def perform_create(self, serializer):
@@ -178,13 +165,3 @@ class CommentViewSet(viewsets.ModelViewSet):
         review_id = self.kwargs.get('review_id')
         review = get_object_or_404(Review, pk=review_id, title=title_id)
         serializer.save(author=self.request.user, review=review)
-
-    def perform_update(self, serializer):
-        review = get_object_or_404(Review, pk=self.kwargs.get('review_id'))
-        # сохранить имя автора, если правит не он
-        comment_id = self.kwargs.get('pk')
-        author = Comment.objects.get(pk=comment_id).author
-        serializer.save(
-            author=author,
-            review_id=review.id
-        )

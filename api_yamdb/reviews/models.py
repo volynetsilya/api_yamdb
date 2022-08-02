@@ -1,5 +1,5 @@
 from django.db import models
-from django.core.exceptions import ValidationError
+# from django.core.exceptions import ValidationError
 from users.models import User
 from django.core.validators import MaxValueValidator, MinValueValidator
 
@@ -41,7 +41,7 @@ class Title(models.Model):
     description = models.TextField(blank=True, null=True)
     genres = models.ManyToManyField(
         Genre,
-        through='GenreTitle' # связь???
+        through='GenreTitle'  # связь???
     )
     category = models.ForeignKey(
         Category,
@@ -65,7 +65,6 @@ class Title(models.Model):
         ]
 
 
-# В этой модели связаны id жанра и id произведения Title
 class GenreTitle(models.Model):
     genre = models.ForeignKey(Genre, on_delete=models.CASCADE)
     title = models.ForeignKey(Title, on_delete=models.CASCADE)
@@ -107,8 +106,13 @@ class Review(models.Model):
     )
 
     class Meta:
-        # contraints
         ordering = ['-pub_date']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['title', 'author'],
+                name='unique_review'
+            ),
+        ]
 
     def __str__(self):
         return self.text[:15]

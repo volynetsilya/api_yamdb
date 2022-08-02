@@ -1,27 +1,23 @@
-from django.contrib.auth.tokens import default_token_generator
+# from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import get_object_or_404
 from rest_framework.exceptions import ValidationError
 from rest_framework import serializers
-# from rest_framework.relations import SlugRelatedField
-from rest_framework.validators import UniqueTogetherValidator, UniqueValidator
-import datetime as dt
-from django.db.models import Avg
+from rest_framework.validators import UniqueValidator
+# import datetime as dt
+# from django.db.models import Avg
 
 from reviews.models import Comment, Review
-from reviews.models import Category, Genre, GenreTitle, Title
-from api.validators import validate_username, validate_email
+from reviews.models import Category, Genre, Title
 from users.models import User
 
 
 class UserSerializer(serializers.ModelSerializer):
     username = serializers.CharField(
         max_length=150,
-        # validators=[validate_username]
         validators=[UniqueValidator(queryset=User.objects.all())]
     )
     email = serializers.EmailField(
         max_length=254,
-        # validators=[validate_email]
         validators=[UniqueValidator(queryset=User.objects.all())]
     )
 
@@ -51,38 +47,12 @@ class SignUpSerializer(serializers.ModelSerializer):
         model = User
         fields = ("username", "email")
 
-    # def create(self, validated_data):
-    #     return User.objects.create(**validated_data)
-
 
 class TokenSerializer(serializers.Serializer):
     username = serializers.CharField(
         max_length=150,
     )
     confirmation_code = serializers.CharField()
-
-    # class Meta:
-    #     model = User
-    #     fields = ('username', 'confirmation_code')
-
-    # def validate(self, data):
-    #     user = get_object_or_404(User, username=data['username'])
-    #     confirmation_code = default_token_generator.make_token(user)
-    #     if str(confirmation_code) != data['confirmation_code']:
-    #         raise ValidationError('Неверный код подтверждения!')
-    #     return data
-
-
-# class GengeTpe(serializers.Field):
-#     def to_representation(self, value):
-#         print(value)
-#         return value
-
-#     def to_internal_value(self, data):
-#         genres_list = Genre.objects.filter(slug__in=data)
-#         if genres_list.count() != len(data):
-#             raise serializers.ValidationError({'genres': 'Таких жанров нет!'})
-#         return genres_list
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -101,7 +71,6 @@ class GenreSerializer(serializers.ModelSerializer):
         exclude = ('id',)
         lookup_field = 'slug'
         extra_kwargs = {'url': {'lookup_field': 'slug'}}
-        # {'name': {'required': False}}
 
 
 class GenreTitleSerializer(serializers.ModelSerializer):
@@ -126,24 +95,10 @@ class TitleSerializer(serializers.ModelSerializer):
     rating = serializers.IntegerField(
         source='reviews__score__avg', read_only=True
     )
-    # rating = serializers.IntegerField()
-    #    Title.objects.annotate(rating=Avg('reviews__score'))
-    # )
 
     class Meta:
         model = Title
         fields = '__all__'
-        # (
-        #     'id', 'name', 'year', 'rating', 'description', 'genre', 'category'
-        # )
-
-        # fields = '__all__'
-
-    # def validate_year(value):
-    #     year = dt.date.today().year
-    #     if value > year:
-    #         raise ValidationError("Год выпуска не может быть больше текущего!")
-    #     return value
 
 
 class TitlePostSerializer(serializers.ModelSerializer):
@@ -154,32 +109,10 @@ class TitlePostSerializer(serializers.ModelSerializer):
     genres = serializers.SlugRelatedField(
         slug_field='slug', many=True, queryset=Genre.objects.all()
     )
-    # GenreTitleSerializer(
-    #     many=True,
-    #    rating = serializers.IntegerField()
-    # )
-    #        Title.objects.annotate(
-    #             rating=Avg('reviews__score'))
-    #     )
-    # )
-
-    # def create(self, validated_data):
-    #     genres_to_write = validated_data.pop('genres')
-    #     title = Title.objects.create(**validated_data)
-    #     print(title)
-    #     for genre in genres_to_write:
-    #         GenreTitle.objects.create(title=title, genre=genre)
-    #     return (title)
 
     class Meta:
         model = Title
         fields = '__all__'
-        
-        # extra_kwargs = {
-        #     'description': {'required': False},
-        #     'category': {'required': True},
-        #     'rating': {'required': False},
-        # }
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -196,12 +129,6 @@ class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
         fields = '__all__'
-        # validators = [
-        #     UniqueTogetherValidator(
-        #         queryset=Review.objects.all(),
-        #         fields=['author', 'title_id']
-        #     )
-        # ]
 
         def validate(self, data):
             request = self.context['request']
@@ -215,10 +142,6 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    # review = serializers.SlugRelatedField(
-    #     slug_field='text',
-    #     read_only=True
-    # )
     author = serializers.SlugRelatedField(
         slug_field='username',
         read_only=True
