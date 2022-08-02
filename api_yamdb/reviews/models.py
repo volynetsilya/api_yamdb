@@ -1,5 +1,6 @@
 from django.db import models
-# from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError
+from django.utils import timezone
 from users.models import User
 from django.core.validators import MaxValueValidator, MinValueValidator
 
@@ -32,21 +33,30 @@ class Genre(models.Model):
         return self.name[:30]
 
 
+def validate_year(value):
+    if value > timezone.now().year:
+        raise ValidationError(
+            ('Год %(value)s больше текущего!'),
+            params={'value': value},
+        )
+
+
 class Title(models.Model):
     """
     A model representing a creative work that belongs to a category.
     """
     name = models.CharField(max_length=256, unique=True)
-    year = models.IntegerField(db_index=True)
+    # year = models.IntegerField(db_index=True)
+    year = models.IntegerField(validators=[validate_year])
     description = models.TextField(blank=True, null=True)
-    genres = models.ManyToManyField(
+    genre = models.ManyToManyField(
         Genre,
         through='GenreTitle'  # связь???
     )
     category = models.ForeignKey(
         Category,
         related_name='title',
-        blank=True,
+        # blank=True,
         null=True,
         on_delete=models.SET_NULL
     )
@@ -56,26 +66,30 @@ class Title(models.Model):
     )
 
     class Meta:
-        ordering = ('category', 'name')
-        constraints = [
-            models.UniqueConstraint(
-                fields=['name', 'year'],
-                name='unique_name_year'
-            ),
-        ]
+        # ordering = ('category', 'name')
+        ordering = ['name']
+        # constraints = [
+        #     models.UniqueConstraint(
+        #         fields=['name', 'year'],
+        #         name='unique_name_year'
+        #     ),
+        # ]
+    
+    def __str__(self):
+        return self.name
 
 
 class GenreTitle(models.Model):
     genre = models.ForeignKey(Genre, on_delete=models.CASCADE)
     title = models.ForeignKey(Title, on_delete=models.CASCADE)
 
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=['genre', 'title'],
-                name='unique_genre_title'
-            ),
-        ]
+    # class Meta:
+    #     constraints = [
+    #         models.UniqueConstraint(
+    #             fields=['genre', 'title'],
+    #             name='unique_genre_title'
+    #         ),
+    #     ]
 
     def __str__(self):
         return f'{self.genre} {self.title}'

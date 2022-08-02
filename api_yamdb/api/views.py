@@ -7,6 +7,7 @@ from rest_framework.decorators import api_view, action, permission_classes
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
 from rest_framework import filters, viewsets, mixins
 from rest_framework import viewsets
@@ -18,7 +19,7 @@ from api.serializers import (
     CategorySerializer,
     GenreSerializer,
     TitleSerializer,
-    TitlePostSerializer
+    ReadOnlyTitleSerializer
 )
 from api.serializers import UserSerializer, SignUpSerializer, TokenSerializer
 from api.serializers import CommentSerializer, ReviewSerializer
@@ -26,6 +27,7 @@ from api.permissions import (
     AdminOnly, AccountOwnerOnly,
     IsAdminModeratorOwnerOrReadOnly, AdminOrReadOnly
 )
+from .filters import TitlesFilter
 from api_yamdb.settings import EMAIL_FOR_AUTH_LETTERS
 
 
@@ -108,14 +110,17 @@ def token(request):
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all().annotate(Avg(
         'reviews__score')).order_by('name')
-    serializer_class = TitlePostSerializer
-    filter_backends = (filters.SearchFilter,)
+    # serializer_class = TitlePostSerializer
+    serializer_class = TitleSerializer
+    # filter_backends = (filters.SearchFilter,)
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = TitlesFilter
     permission_classes = (AdminOrReadOnly,)
 
     def get_serializer_class(self):
-        if self.action in ('list', 'retrieve'):
-            return TitleSerializer
-        return TitlePostSerializer
+        if self.action in ("retrieve", "list"):
+            return ReadOnlyTitleSerializer
+        return TitleSerializer
 
 
 class CategoriesViewSet(LCDV):
