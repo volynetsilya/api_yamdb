@@ -2,36 +2,31 @@ from django.shortcuts import get_object_or_404
 from django.db.models import Avg
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
-from rest_framework import viewsets, filters, status
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import viewsets, filters, status, mixins
 from rest_framework.decorators import api_view, action, permission_classes
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
-from rest_framework import filters, viewsets, mixins
-from rest_framework import viewsets
 
 from users.models import User
-from reviews.models import Review, Title
-from reviews.models import Category, Genre, Title
+from reviews.models import Review, Title, Category, Genre, Title
 from api.serializers import (
-    CategorySerializer,
-    GenreSerializer,
-    TitleSerializer,
-    ReadOnlyTitleSerializer
+    CategorySerializer, GenreSerializer,
+    TitleSerializer, ReadOnlyTitleSerializer,
+    UserSerializer, SignUpSerializer, TokenSerializer,
+    CommentSerializer, ReviewSerializer
 )
-from api.serializers import UserSerializer, SignUpSerializer, TokenSerializer
-from api.serializers import CommentSerializer, ReviewSerializer
 from api.permissions import (
     AdminOnly, AccountOwnerOnly,
     IsAdminModeratorOwnerOrReadOnly, AdminOrReadOnly
 )
-from .filters import TitlesFilter
+from api.filters import TitlesFilter
 from api_yamdb.settings import EMAIL_FOR_AUTH_LETTERS
 
 
-class LCDV(
+class ListCreateDestroyViewSet(
     mixins.ListModelMixin,
     mixins.CreateModelMixin,
     mixins.DestroyModelMixin,
@@ -75,7 +70,6 @@ def signup(request):
     user = User.objects.get(username=request.data['username'],
                             email=request.data['email'])
     confirmation_code = default_token_generator.make_token(user)
-    print(confirmation_code)
     send_mail(
         'Код подтверждения', confirmation_code, EMAIL_FOR_AUTH_LETTERS,
         [request.data['email']], fail_silently=True
@@ -110,9 +104,7 @@ def token(request):
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all().annotate(Avg(
         'reviews__score')).order_by('name')
-    # serializer_class = TitlePostSerializer
     serializer_class = TitleSerializer
-    # filter_backends = (filters.SearchFilter,)
     filter_backends = [DjangoFilterBackend]
     filterset_class = TitlesFilter
     permission_classes = (AdminOrReadOnly,)
@@ -123,7 +115,7 @@ class TitleViewSet(viewsets.ModelViewSet):
         return TitleSerializer
 
 
-class CategoriesViewSet(LCDV):
+class CategoriesViewSet(ListCreateDestroyViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = (AdminOrReadOnly,)
@@ -133,7 +125,7 @@ class CategoriesViewSet(LCDV):
     filter_backends = (filters.SearchFilter,)
 
 
-class GenresViewSet(LCDV):
+class GenresViewSet(ListCreateDestroyViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     filter_backends = (filters.SearchFilter,)

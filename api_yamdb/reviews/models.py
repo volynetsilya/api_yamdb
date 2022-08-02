@@ -46,17 +46,15 @@ class Title(models.Model):
     A model representing a creative work that belongs to a category.
     """
     name = models.CharField(max_length=256, unique=True)
-    # year = models.IntegerField(db_index=True)
     year = models.IntegerField(validators=[validate_year])
     description = models.TextField(blank=True, null=True)
     genre = models.ManyToManyField(
         Genre,
-        through='GenreTitle'  # связь???
+        through='GenreTitle'
     )
     category = models.ForeignKey(
         Category,
         related_name='title',
-        # blank=True,
         null=True,
         on_delete=models.SET_NULL
     )
@@ -66,14 +64,7 @@ class Title(models.Model):
     )
 
     class Meta:
-        # ordering = ('category', 'name')
         ordering = ['name']
-        # constraints = [
-        #     models.UniqueConstraint(
-        #         fields=['name', 'year'],
-        #         name='unique_name_year'
-        #     ),
-        # ]
 
     def __str__(self):
         return self.name
@@ -82,14 +73,6 @@ class Title(models.Model):
 class GenreTitle(models.Model):
     genre = models.ForeignKey(Genre, on_delete=models.CASCADE)
     title = models.ForeignKey(Title, on_delete=models.CASCADE)
-
-    # class Meta:
-    #     constraints = [
-    #         models.UniqueConstraint(
-    #             fields=['genre', 'title'],
-    #             name='unique_genre_title'
-    #         ),
-    #     ]
 
     def __str__(self):
         return f'{self.genre} {self.title}'

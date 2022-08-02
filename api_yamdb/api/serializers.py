@@ -1,13 +1,9 @@
-# from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import get_object_or_404
 from rest_framework.exceptions import ValidationError
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
-# import datetime as dt
-# from django.db.models import Avg
 
-from reviews.models import Comment, Review
-from reviews.models import Category, Genre, Title
+from reviews.models import Comment, Review, Category, Genre, Title
 from users.models import User
 
 
@@ -73,52 +69,17 @@ class GenreSerializer(serializers.ModelSerializer):
         extra_kwargs = {'url': {'lookup_field': 'slug'}}
 
 
-# class GenreTitleSerializer(serializers.ModelSerializer):
-
-#     def to_internal_value(self, data):
-#         try:
-#             genres_list = Genre.objects.get(slug=data)
-#         except Exception:
-#             raise serializers.ValidationError('Таких жанров нет!')
-#         print(genres_list)
-#         return genres_list
-
-#     class Meta:
-#         fields = ('name', 'slug')
-#         model = Genre
-#         extra_kwargs = {'name': {'required': False}}
-
-
 class TitleSerializer(serializers.ModelSerializer):
-    # genre = GenreSerializer(many=True, required=True)
     genre = serializers.SlugRelatedField(
         slug_field='slug', many=True, queryset=Genre.objects.all()
     )
-    # category = CategorySerializer(required=True)
     category = serializers.SlugRelatedField(
         slug_field='slug', queryset=Category.objects.all()
     )
-    # rating = serializers.IntegerField(
-    #     source='reviews__score__avg', read_only=True
-    # )
 
     class Meta:
         model = Title
         fields = '__all__'
-
-
-# class TitlePostSerializer(serializers.ModelSerializer):
-#     category = serializers.SlugRelatedField(
-#         queryset=Category.objects.all(),
-#         slug_field='slug'
-#     )
-#     genres = serializers.SlugRelatedField(
-#         slug_field='slug', many=True, queryset=Genre.objects.all()
-#     )
-
-#     class Meta:
-#         model = Title
-#         fields = '__all__'
 
 
 class ReadOnlyTitleSerializer(serializers.ModelSerializer):
