@@ -24,24 +24,28 @@ class UserSerializer(serializers.ModelSerializer):
         )
 
 
-class SignUpSerializer(serializers.ModelSerializer):
+class SignUpSerializer(serializers.Serializer):
     username = serializers.CharField(
         max_length=150,
-        validators=[UniqueValidator(queryset=User.objects.all())]
     )
     email = serializers.EmailField(
-        max_length=254,
-        validators=[UniqueValidator(queryset=User.objects.all())]
+        max_length=254, required=True
     )
 
     def validate_username(self, value):
         if value.lower() == 'me':
-            raise serializers.ValidationError("Пользователь 'me' не корректен")
+            raise serializers.ValidationError('Пользователь "me" не корректен')
+        elif User.objects.filter(username=value):
+            raise serializers.ValidationError('Пользователь с таким именем '
+                                              'уже зарегистрирован')
         return value
 
-    class Meta:
-        model = User
-        fields = ("username", "email")
+    def validate_email(self, value):
+        if User.objects.filter(email=value.lower()):
+            raise serializers.ValidationError(
+                'Такая почта уже зарегистрирована'
+            )
+        return value
 
 
 class TokenSerializer(serializers.Serializer):
@@ -97,9 +101,9 @@ class ReadOnlyTitleSerializer(serializers.ModelSerializer):
 
 
 class ReviewSerializer(serializers.ModelSerializer):
-    title = serializers.SlugRelatedField(
-        slug_field='name',
-        read_only=True,
+    title = serializers.HiddenField(
+        default=serializers.SlugRelatedField(
+            slug_field='name', read_only=True)
     )
     author = serializers.SlugRelatedField(
         default=serializers.CurrentUserDefault(),
@@ -130,4 +134,4 @@ class CommentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Comment
-        exclude = ('review',)
+        fields = ('id', 'review_id', 'text', 'author', 'pub_date')

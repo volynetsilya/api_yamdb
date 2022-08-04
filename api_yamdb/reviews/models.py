@@ -1,8 +1,10 @@
 from django.db import models
-from django.core.exceptions import ValidationError
-from django.utils import timezone
-from users.models import User
 from django.core.validators import MaxValueValidator, MinValueValidator
+
+from users.models import User
+from reviews.validators import validate_year
+
+SIMBOLS_IN_STR = 30
 
 
 class Category(models.Model):
@@ -16,7 +18,7 @@ class Category(models.Model):
         ordering = ('name',)
 
     def __str__(self):
-        return self.name[:30]
+        return self.name
 
 
 class Genre(models.Model):
@@ -30,15 +32,7 @@ class Genre(models.Model):
         ordering = ('name',)
 
     def __str__(self):
-        return self.name[:30]
-
-
-def validate_year(value):
-    if value > timezone.now().year:
-        raise ValidationError(
-            ('Год %(value)s больше текущего!'),
-            params={'value': value},
-        )
+        return self.name
 
 
 class Title(models.Model):
@@ -112,7 +106,7 @@ class Review(models.Model):
         ]
 
     def __str__(self):
-        return self.text[:15]
+        return self.text[:SIMBOLS_IN_STR]
 
 
 class Comment(models.Model):
@@ -137,4 +131,4 @@ class Comment(models.Model):
         ordering = ['-pub_date']
 
     def __str__(self):
-        return self.text[:15]
+        return self.text[:SIMBOLS_IN_STR]

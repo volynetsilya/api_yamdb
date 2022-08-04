@@ -3,7 +3,6 @@ from django.db import models
 
 
 class User(AbstractUser):
-    bio = models.TextField('Биография', blank=True,)
     USER = 'user'
     ADMIN = 'admin'
     MODERATOR = 'moderator'
@@ -12,17 +11,18 @@ class User(AbstractUser):
         (ADMIN, 'Адмитнистратор'),
         (MODERATOR, 'Модератор'),
     )
+    bio = models.TextField('Биография', blank=True,)
     role = models.TextField(
         'Роль',
         choices=ROLE_CHOICES,
         default='user'
     )
 
-    def __str__(self):
-        return self.username
-
     class Meta:
         ordering = ('role',)
+
+    def __str__(self):
+        return self.username
 
     @property
     def is_user(self):
