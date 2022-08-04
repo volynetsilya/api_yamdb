@@ -1,3 +1,4 @@
+from django.db import IntegrityError
 from django.shortcuts import get_object_or_404
 from django.db.models import Avg
 from django.contrib.auth.tokens import default_token_generator
@@ -8,7 +9,7 @@ from rest_framework.decorators import api_view, action, permission_classes
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
+from rest_framework_simplejwt.tokens import AccessToken
 
 from users.models import User
 from reviews.models import Review, Title, Category, Genre, Title
@@ -19,8 +20,8 @@ from api.serializers import (
     CommentSerializer, ReviewSerializer
 )
 from api.permissions import (
-    AdminOnly, AccountOwnerOnly,
-    IsAdminModeratorOwnerOrReadOnly, AdminOrReadOnly
+    IsAuthor, AdminOrReadOnly,
+    AdminOnly, IsAdminModeratorOwnerOrReadOnly
 )
 from api.filters import TitlesFilter
 from api_yamdb.settings import EMAIL_FOR_AUTH_LETTERS
@@ -45,7 +46,7 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(
         detail=False,
         methods=['get', 'patch'],
-        permission_classes=(AccountOwnerOnly, IsAuthenticated)
+        permission_classes=(IsAuthor, IsAuthenticated)
     )
     def me(self, request):
         user = get_object_or_404(User, username=self.request.user.username)
@@ -62,32 +63,31 @@ class UserViewSet(viewsets.ModelViewSet):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def signup(request):
+    username = request.data.get('username')
     serializer = SignUpSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    if not User.objects.filter(username=request.data['username'],
-                               email=request.data['email']).exists():
-        serializer.save()
-    user = User.objects.get(username=request.data['username'],
-                            email=request.data['email'])
+    email = serializer.data.get('email')
+    if username is not None:
+        try:
+            User.objects.create_user(username=username, email=email)
+        except IntegrityError:
+            return Response(
+                {'Error': 'Пользователь с таким именем и email '
+                          'уже существует!'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+    user = get_object_or_404(User, email=email)
     confirmation_code = default_token_generator.make_token(user)
     send_mail(
         'Код подтверждения', confirmation_code, EMAIL_FOR_AUTH_LETTERS,
-        [request.data['email']], fail_silently=True
+        [serializer.data['email']], fail_silently=True
     )
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-def get_tokens_for_user(user):
-    refresh = RefreshToken.for_user(user)
-    return {
-        'refresh': str(refresh),
-        'access': str(refresh.access_token),
-    }
-
-
 @api_view(['POST'])
 @permission_classes([AllowAny])
-def token(request):
+def get_token(request):
     serializer = TokenSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     user = get_object_or_404(
@@ -136,7 +136,7 @@ class GenresViewSet(ListCreateDestroyViewSet):
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
-    permission_classes = [IsAdminModeratorOwnerOrReadOnly]
+    permission_classes = (IsAdminModeratorOwnerOrReadOnly,)
 
     def get_queryset(self):
         title_id = self.kwargs.get('title_id')
@@ -151,14 +151,13 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
-    permission_classes = [IsAdminModeratorOwnerOrReadOnly]
+    permission_classes = (IsAdminModeratorOwnerOrReadOnly,)
 
     def get_queryset(self):
         review = get_object_or_404(Review, pk=self.kwargs.get('review_id'))
         return review.comments.all()
 
     def perform_create(self, serializer):
-        title_id = self.kwargs.get('title_id')
         review_id = self.kwargs.get('review_id')
-        review = get_object_or_404(Review, pk=review_id, title=title_id)
+        review = get_object_or_404(Review, pk=review_id)
         serializer.save(author=self.request.user, review=review)
