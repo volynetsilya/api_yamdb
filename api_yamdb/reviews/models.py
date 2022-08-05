@@ -52,7 +52,7 @@ class Title(models.Model):
         null=True,
         on_delete=models.SET_NULL
     )
-    
+
     class Meta:
         ordering = ['name']
 
