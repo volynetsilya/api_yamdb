@@ -25,7 +25,7 @@ class SignUpSerializer(serializers.Serializer):
     )
 
     def validate_username(self, value):
-        if value.lower() == 'me' or not re.match('^[a-zA-Z0-9_.-]+$', value):
+        if value.lower() == 'me' or not re.match('^[a-zA-Z0-9_@.+-]+$', value):
             raise serializers.ValidationError('Имя пользователя не корректно!')
         return value
 
