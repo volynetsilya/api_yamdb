@@ -52,11 +52,7 @@ class Title(models.Model):
         null=True,
         on_delete=models.SET_NULL
     )
-    rating = models.IntegerField(
-        null=True,
-        default=None
-    )
-
+    
     class Meta:
         ordering = ['name']
 

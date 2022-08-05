@@ -8,10 +8,12 @@ class User(AbstractUser):
     MODERATOR = 'moderator'
     ROLE_CHOICES = (
         (USER, 'Аутентифицированный пользователь'),
-        (ADMIN, 'Адмитнистратор'),
+        (ADMIN, 'Администратор'),
         (MODERATOR, 'Модератор'),
     )
-    bio = models.TextField('Биография', blank=True,)
+    username = models.CharField('username', max_length=150, unique=True)
+    email = models.EmailField('email', unique=True)
+    bio = models.TextField('Биография', blank=True)
     role = models.TextField(
         'Роль',
         choices=ROLE_CHOICES,

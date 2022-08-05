@@ -1,21 +1,13 @@
+import re
 from django.shortcuts import get_object_or_404
-from rest_framework.exceptions import ValidationError
 from rest_framework import serializers
-from rest_framework.validators import UniqueValidator
+from rest_framework.exceptions import ValidationError
 
-from reviews.models import Comment, Review, Category, Genre, Title
 from users.models import User
+from reviews.models import Comment, Review, Category, Genre, Title
 
 
 class UserSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(
-        max_length=150,
-        validators=[UniqueValidator(queryset=User.objects.all())]
-    )
-    email = serializers.EmailField(
-        max_length=254,
-        validators=[UniqueValidator(queryset=User.objects.all())]
-    )
 
     class Meta:
         model = User
@@ -33,18 +25,8 @@ class SignUpSerializer(serializers.Serializer):
     )
 
     def validate_username(self, value):
-        if value.lower() == 'me':
-            raise serializers.ValidationError('Пользователь "me" не корректен')
-        elif User.objects.filter(username=value):
-            raise serializers.ValidationError('Пользователь с таким именем '
-                                              'уже зарегистрирован')
-        return value
-
-    def validate_email(self, value):
-        if User.objects.filter(email=value.lower()):
-            raise serializers.ValidationError(
-                'Такая почта уже зарегистрирована'
-            )
+        if value.lower() == 'me' or not re.match('^[a-zA-Z0-9_.-]+$', value):
+            raise serializers.ValidationError('Имя пользователя не корректно!')
         return value
 
 
@@ -95,9 +77,7 @@ class ReadOnlyTitleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Title
-        fields = (
-            'id', 'name', 'year', 'rating', 'description', 'genre', 'category'
-        )
+        fields = '__all__'
 
 
 class ReviewSerializer(serializers.ModelSerializer):
