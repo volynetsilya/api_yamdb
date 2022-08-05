@@ -1,13 +1,12 @@
-from django.db import IntegrityError
-from django.shortcuts import get_object_or_404
 from django.db.models import Avg
-from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
+from django.shortcuts import get_object_or_404
+from django.contrib.auth.tokens import default_token_generator
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, filters, status, mixins
-from rest_framework.decorators import api_view, action, permission_classes
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
+from rest_framework.decorators import api_view, action, permission_classes
+from rest_framework.validators import ValidationError
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_simplejwt.tokens import AccessToken
 
@@ -40,7 +39,6 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     lookup_field = 'username'
     serializer_class = UserSerializer
-    pagination_class = PageNumberPagination
     permission_classes = (AdminOnly,)
 
     @action(
@@ -63,20 +61,16 @@ class UserViewSet(viewsets.ModelViewSet):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def signup(request):
-    username = request.data.get('username')
     serializer = SignUpSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    email = serializer.data.get('email')
-    if username is not None:
-        try:
-            User.objects.create_user(username=username, email=email)
-        except IntegrityError:
-            return Response(
-                {'Error': 'Пользователь с таким именем и email '
-                          'уже существует!'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-    user = get_object_or_404(User, email=email)
+    username = serializer.data['username']
+    email = serializer.data['email']
+    if (User.objects.filter(username=username)
+            or User.objects.filter(email=email)):
+        raise ValidationError(
+            'Пользователь с таким именем или почтой уже зарегистрирован')
+    user, _ = User.objects.get_or_create(username=username,
+                                         email=email)
     confirmation_code = default_token_generator.make_token(user)
     send_mail(
         'Код подтверждения', confirmation_code, EMAIL_FOR_AUTH_LETTERS,
@@ -98,12 +92,15 @@ def get_token(request):
     if default_token_generator.check_token(user, confirmation_code):
         token = AccessToken.for_user(user)
         return Response({'token': str(token)}, status=status.HTTP_200_OK)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return Response(
+        {'confimation_code': 'Код подтверждения неверный'},
+        status=status.HTTP_400_BAD_REQUEST
+    )
 
 
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all().annotate(Avg(
-        'reviews__score')).order_by('name')
+        'reviews__score'))
     serializer_class = TitleSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = TitlesFilter
