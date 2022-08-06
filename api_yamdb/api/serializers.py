@@ -1,4 +1,5 @@
 import re
+
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -17,12 +18,8 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class SignUpSerializer(serializers.Serializer):
-    username = serializers.CharField(
-        max_length=150,
-    )
-    email = serializers.EmailField(
-        max_length=254, required=True
-    )
+    username = serializers.CharField()
+    email = serializers.EmailField(required=True)
 
     def validate_username(self, value):
         if value.lower() == 'me' or not re.match('^[a-zA-Z0-9_@.+-]+$', value):

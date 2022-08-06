@@ -12,7 +12,7 @@ class User(AbstractUser):
         (MODERATOR, 'Модератор'),
     )
     username = models.CharField('username', max_length=150, unique=True)
-    email = models.EmailField('email', unique=True)
+    email = models.EmailField('email', max_length=254, unique=True)
     bio = models.TextField('Биография', blank=True)
     role = models.TextField(
         'Роль',
